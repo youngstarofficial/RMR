@@ -1,0 +1,135 @@
+/* Global Styles */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #181818;
+  color: #f5f5f5;
+}
+
+/* Container */
+.container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* Headings */
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+/* Filter Form - stacked layout */
+.filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Top Box (Student Info) */
+.filter-top {
+  background: #242424;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Button Group (between top & bottom) */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.button-group button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+#searchBtn {
+  background-color: #007bff;
+  color: white;
+}
+
+#resetBtn {
+  background-color: #6c757d;
+  color: white;
+}
+
+#downloadBtn {
+  background-color: #28a745;
+  color: white;
+}
+
+.button-group button:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
+/* Bottom Box (Filters) */
+.filter-bottom {
+  background: #242424;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Inputs & Selects */
+.filter-form input,
+.filter-form select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #1e1e1e;
+  color: #f5f5f5;
+  flex: 1;
+  min-width: 160px;
+}
+
+/* Table */
+#studentTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #242424;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#studentTable th,
+#studentTable td {
+  padding: 14px;
+  text-align: left;
+}
+
+#studentTable th {
+  background: #333;
+  font-weight: 600;
+  color: #ddd;
+}
+
+#studentTable tr:nth-child(even) {
+  background: #1e1e1e;
+}
+
+#studentTable tr:hover {
+  background: #2c2c2c;
+}
+
+#studentTable td {
+  border-top: 1px solid #333;
+}
