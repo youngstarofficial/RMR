@@ -1,19 +1,34 @@
+"use client"; // make this a client component
+
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const router = useRouter();
+  const [emojiData, setEmojiData] = useState([]);
 
   const handleOpen = () => {
     router.push('/students');
   };
 
-  // Emoji set
   const emojis = [
     "🌸", "✨", "💖", "🎀", "💕", "🎉", "💎", "💫", "🌟", "🦋",
     "🌿", "🍃", "🌼", "🌈", "💐", "🌞", "⭐", "💓", "🌷", "🌺",
     "🍀", "☘️", "🌻", "🌹", "🌱", "🪷", "🦄", "🌠", "🎇", "🎆"
   ];
+
+  useEffect(() => {
+    // Generate random emoji positions, size, delay, etc. on client only
+    const data = Array.from({ length: 30 }).map(() => ({
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      left: Math.random() * 100,
+      fontSize: 1.5 + Math.random() * 2.5,
+      animationDuration: 5 + Math.random() * 5,
+      animationDelay: Math.random() * 5
+    }));
+    setEmojiData(data);
+  }, []);
 
   return (
     <div className="page">
@@ -25,18 +40,18 @@ export default function Home() {
       </Head>
 
       {/* Floating emojis */}
-      {Array.from({ length: 30 }).map((_, i) => (
+      {emojiData.map((e, i) => (
         <div
           key={i}
           className="emoji"
           style={{
-            left: `${Math.random() * 100}%`,
-            animationDuration: `${5 + Math.random() * 5}s`,
-            fontSize: `${1.5 + Math.random() * 2.5}rem`,
-            animationDelay: `${Math.random() * 5}s`,
+            left: `${e.left}%`,
+            fontSize: `${e.fontSize}rem`,
+            animationDuration: `${e.animationDuration}s`,
+            animationDelay: `${e.animationDelay}s`
           }}
         >
-          {emojis[Math.floor(Math.random() * emojis.length)]}
+          {e.emoji}
         </div>
       ))}
 
