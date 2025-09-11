@@ -165,101 +165,76 @@ export default function Students() {
   };
 
   const handleDownload = () => {
-  const doc = new jsPDF();
+    const doc = new jsPDF();
+    const studentName = document.getElementById("name").value || "Provide_Name";
+    const mark = document.getElementById("rank").value || "Provide_Rank";
+    const caste = getActiveCaste() || "Provide_Caste";
 
-  // Student Info values
-  const studentName = document.getElementById("name").value || "Provide_Name";
-  const mark = document.getElementById("rank").value || "Provide_Rank";
-  const caste = getActiveCaste() || "Provide_Caste";
+    const bgColor = [228, 228, 255];
+    const x = 14, y = 20, width = 182, height = 8;
 
-  // Background color for the row
-  const bgColor = [228, 228, 255]; // #d5f9ffff
+    doc.setFillColor(...bgColor);
+    doc.rect(x, y, width, height, "F");
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.rect(x, y, width, height);
 
-  // Position and size
-  const x = 14;
-  const y = 20;
-  const width = 182;
-  const height = 8; // reduced height
+    const colWidths = [60, 50, 72];
+    const colX = [x, x + colWidths[0], x + colWidths[0] + colWidths[1]];
 
-  // Draw filled rectangle
-  doc.setFillColor(...bgColor);
-  doc.rect(x, y, width, height, "F");
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("Name:", colX[0] + 2, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(studentName, colX[0] + 18, y + 6);
+    doc.setFont("helvetica", "bold");
+    doc.text("Rank:", colX[1] + 2, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(mark, colX[1] + 16, y + 6);
+    doc.setFont("helvetica", "bold");
+    doc.text("Caste:", colX[2] + 2, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(caste, colX[2] + 18, y + 6);
 
-  // Draw border around the row
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.5);
-  doc.rect(x, y, width, height);
+    const tableColumn = ["Sl. No", "Inst Code", "Institute Name", "Branch Code", "Branch Name", "Dist Code", "Place"];
+    const tableRows = filtered.map((s, idx) => [
+      idx + 1,
+      s.instCode || "",
+      s.instituteName || "",
+      s.branchCode || "",
+      s.branchName || "",
+      s.distCode || "",
+      s.place || ""
+    ]);
 
-  // Divide into 3 sections for Name, Rank, Caste
-  const colWidths = [60, 50, 72]; // total = 182
-  const colX = [x, x + colWidths[0], x + colWidths[0] + colWidths[1]];
-
-  // Draw vertical lines between columns
-  doc.line(colX[1], y, colX[1], y + height);
-  doc.line(colX[2], y, colX[2], y + height);
-
-  // Add text inside each column (bold)
-// Add text inside each column
-doc.setFontSize(11);
-
-// Name
-doc.setFont("helvetica", "bold");
-doc.text("Name:", colX[0] + 2, y + 6);
-doc.setFont("helvetica", "normal");
-doc.text(studentName, colX[0] + 18, y + 6); // shifted right to fit after label
-
-// Rank
-doc.setFont("helvetica", "bold");
-doc.text("Rank:", colX[1] + 2, y + 6);
-doc.setFont("helvetica", "normal");
-doc.text(mark, colX[1] + 16, y + 6);
-
-// Caste
-doc.setFont("helvetica", "bold");
-doc.text("Caste:", colX[2] + 2, y + 6);
-doc.setFont("helvetica", "normal");
-doc.text(caste, colX[2] + 18, y + 6);
-
-  // Continue with the table below
-  const tableColumn = ["Inst Code", "Institute Name", "Branch Code", "Branch Name", "Dist Code", "Place"];
-  const tableRows = filtered.map((s) => [
-    s.instCode || "",
-    s.instituteName || "",
-    s.branchCode || "",
-    s.branchName || "",
-    s.distCode || "",
-    s.place || ""
-  ]);
-
-  autoTable(doc, {
-    head: [tableColumn],
-    body: tableRows,
-    startY: y + height + 4,
-    styles: { halign: "center", fontSize: 9, lineColor: [0, 0, 0], lineWidth: 0.3 },
-    headStyles: { fillColor: [173, 216, 230], textColor: 0, fontStyle: "bold" },
-    bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
-    tableLineColor: [0, 0, 0],
-    tableLineWidth: 0.3,
-    didParseCell: (data) => {
-      if (data.section === "body") {
-        const row = filtered[data.row.index];
-        if (isGirlsCollege(row)) {
-          data.cell.styles.fillColor = [255, 228, 225];
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: y + height + 4,
+      styles: { halign: "center", fontSize: 9, lineColor: [0, 0, 0], lineWidth: 0.3 },
+      headStyles: { fillColor: [173, 216, 230], textColor: 0, fontStyle: "bold" },
+      bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
+      tableLineColor: [0, 0, 0],
+      tableLineWidth: 0.3,
+      didParseCell: (data) => {
+        if (data.section === "body") {
+          const row = filtered[data.row.index];
+          if (isGirlsCollege(row)) {
+            data.cell.styles.fillColor = [255, 228, 225];
+          }
         }
-      }
-    },
-  });
+      },
+    });
 
-  // Footer with page numbers
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(10);
-    doc.text(`Page ${i} of ${pageCount}`, 200, 290, { align: "right" });
-  }
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.text(`Page ${i} of ${pageCount}`, 200, 290, { align: "right" });
+    }
 
-  doc.save(`${studentName.replace(/\s+/g, "_")}_${mark}_${caste.replace(/\s+/g, "_")}.pdf`);
-};
+    doc.save(`${studentName.replace(/\s+/g, "_")}_${mark}_${caste.replace(/\s+/g, "_")}.pdf`);
+  };
 
   const displayCaste = selectedCaste || studentCaste || "";
 
@@ -337,6 +312,7 @@ doc.text(caste, colX[2] + 18, y + 6);
           <tr>
             <th>Sl. No</th>
             <th>Remove</th>
+            <th>Move</th>
             <th>Inst Code</th>
             <th>Institute Name</th>
             <th>Place</th>
@@ -348,37 +324,37 @@ doc.text(caste, colX[2] + 18, y + 6);
             <th>Tuition Fee</th>
           </tr>
         </thead>
-<tbody>
-  {filtered.map((s, idx) => {
-    const isWomenCollege = (s.instituteName || "").toLowerCase().includes("women") || isGirlsCollege(s);
-    return (
-      <tr key={idx} style={{ backgroundColor: isWomenCollege ? "#ffe4e1" : "#e6e6fa" }}>
-        <td>{idx + 1}</td>
-        <td>
-          <button onClick={() => {
-            const newData = [...filtered];
-            newData.splice(idx, 1);
-            setFiltered(newData);
-          }}>❌</button>
-        </td>
-        {/* NEW: Up / Down Buttons */}
-        <td>
-          <button onClick={() => moveRow(idx, "up")}>⬆</button>
-          <button onClick={() => moveRow(idx, "down")}>⬇</button>
-        </td>
-        <td>{s.instCode}</td>
-        <td>{s.instituteName}</td>
-        <td>{s.place}</td>
-        <td>{s.distCode}</td>
-        <td>{s.branchCode}</td>
-        <td>{s.branchName}</td>
-        {displayCaste === "" && casteOptions.map(c => <td key={c}>{s[casteMap[c]]}</td>)}
-        {displayCaste !== "" && <td>{s[casteMap[displayCaste]]}</td>}
-        <td>{s.tuitionFee}</td>
-      </tr>
-    );
-  })}
-</tbody>
+        <tbody>
+          {filtered.map((s, idx) => {
+            const isWomenCollege = (s.instituteName || "").toLowerCase().includes("women") || isGirlsCollege(s);
+            return (
+              <tr key={idx} style={{ backgroundColor: isWomenCollege ? "#ffe4e1" : "#e6e6fa" }}>
+                <td>{idx + 1}</td>
+                <td>
+                  <button onClick={() => {
+                    const newData = [...filtered];
+                    newData.splice(idx, 1);
+                    setFiltered(newData);
+                  }}>❌</button>
+                </td>
+                {/* Move buttons */}
+                <td>
+                  <button onClick={() => moveRow(idx, "up")}>⬆</button>
+                  <button onClick={() => moveRow(idx, "down")}>⬇</button>
+                </td>
+                <td>{s.instCode}</td>
+                <td>{s.instituteName}</td>
+                <td>{s.place}</td>
+                <td>{s.distCode}</td>
+                <td>{s.branchCode}</td>
+                <td>{s.branchName}</td>
+                {displayCaste === "" && casteOptions.map(c => <td key={c}>{s[casteMap[c]]}</td>)}
+                {displayCaste !== "" && <td>{s[casteMap[displayCaste]]}</td>}
+                <td>{s.tuitionFee}</td>
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
 
       <style jsx>{`
