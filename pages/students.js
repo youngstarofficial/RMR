@@ -24,7 +24,7 @@ export default function Students() {
     "EWS GEN OU":"ewsGenOu","EWS GIRLS OU":"ewsGirlsOu"
   };
 
-  // Utility: parse rank string to numeric. Non-numeric or missing => Infinity
+  // Utility: parse rank string to numeric
   const parseRank = (value) => {
     if (value === undefined || value === null) return Infinity;
     const s = String(value).trim();
@@ -34,41 +34,48 @@ export default function Students() {
     return parseInt(digits, 10);
   };
 
-  // Group by institute, sort colleges by best branch rank, then sort branches inside
-  const sortByCollegeAndRank = (data, casteKey) => {
-    const grouped = data.reduce((acc, item) => {
-      const inst = item.instituteName || "";
-      if (!acc[inst]) acc[inst] = [];
-      acc[inst].push(item);
-      return acc;
-    }, {});
+  // ✅ Colleges sorted by best branch rank, branches inside ordered by rank
+  const sortByInstituteAndRank = (data, casteKey = null) => {
+    if (!casteKey) {
+      return [...data].sort((a, b) =>
+        (a.instituteName || "").localeCompare(b.instituteName || "")
+      );
+    }
 
-    const colleges = Object.keys(grouped).map(inst => {
-      const branches = grouped[inst].sort((a, b) => {
+    // Group by institute
+    const groups = {};
+    data.forEach((item) => {
+      const inst = item.instituteName || "";
+      if (!groups[inst]) groups[inst] = [];
+      groups[inst].push(item);
+    });
+
+    // Sort branches inside each group by rank
+    Object.keys(groups).forEach((inst) => {
+      groups[inst].sort((a, b) => {
         const rankA = parseRank(a[casteKey]);
         const rankB = parseRank(b[casteKey]);
         if (rankA !== rankB) return rankA - rankB;
         return (a.branchName || "").localeCompare(b.branchName || "");
       });
-      const bestRank = Math.min(...branches.map(b => parseRank(b[casteKey])));
-      return { inst, branches, bestRank };
     });
 
-    colleges.sort((a, b) => {
-      if (a.bestRank !== b.bestRank) return a.bestRank - b.bestRank;
-      return a.inst.localeCompare(b.inst);
+    // Sort institutes by their best branch rank
+    const institutes = Object.keys(groups).sort((instA, instB) => {
+      const bestA = Math.min(...groups[instA].map((s) => parseRank(s[casteKey])));
+      const bestB = Math.min(...groups[instB].map((s) => parseRank(s[casteKey])));
+      if (bestA !== bestB) return bestA - bestB;
+      return instA.localeCompare(instB);
     });
 
-    return colleges.flatMap(c => c.branches);
+    // Flatten into a single array
+    return institutes.flatMap((inst) => groups[inst]);
   };
 
   const isGirlsCollege = (student) => {
     return Object.keys(casteMap)
       .filter(c => c.endsWith("Boys"))
-      .every(key => {
-        const field = casteMap[key];
-        return !student[field];
-      });
+      .every(key => !student[casteMap[key]]);
   };
 
   useEffect(() => {
@@ -76,8 +83,9 @@ export default function Students() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          setStudents(data);
-          setFiltered(data);
+          const sortedData = sortByInstituteAndRank(data, null);
+          setStudents(sortedData);
+          setFiltered(sortedData);
         } else {
           setStudents([]);
           setFiltered([]);
@@ -110,8 +118,8 @@ export default function Students() {
       const matchesDistrict = selectedDistricts.length ? selectedDistricts.includes(s.distCode) : true;
       const matchesCollegeType = collegeType === "All" ? true : (s.instituteName || "").toLowerCase().includes("women");
 
-      const isBoysCaste = ["OC Boys","BC-A Boys","BC-B Boys","BC-C Boys","BC-D Boys","BC-E Boys","SC Boys","ST Boys","EWS GEN OU"].includes(caste);
-      if (isBoysCaste && isGirlsCollege(s)) return false;
+      const boysCaste = ["OC Boys","BC-A Boys","BC-B Boys","BC-C Boys","BC-D Boys","BC-E Boys","SC Boys","ST Boys","EWS GEN OU"];
+      if (boysCaste.includes(caste) && isGirlsCollege(s)) return false;
 
       let matchesCaste = true;
       if (caste) {
@@ -130,7 +138,8 @@ export default function Students() {
       return matchesName && matchesBranch && matchesDistrict && matchesCaste && matchesRank && matchesCollegeType;
     });
 
-    setFiltered(result);
+    const casteKey = caste ? casteMap[caste] : null;
+    setFiltered(sortByInstituteAndRank(result, casteKey));
   };
 
   const handleReset = () => {
@@ -143,18 +152,17 @@ export default function Students() {
     document.getElementById("maxRank").value = "";
     setSelectedBranches([]);
     setSelectedDistricts([]);
-    setFiltered(students);
+    setFiltered(sortByInstituteAndRank(students, null));
   };
 
   const handleSortByRank = () => {
     const caste = getActiveCaste();
     if (!caste) {
-      alert("Please select a caste (either in Filters or Enter Student Info) before sorting by rank.");
+      alert("Please select a caste before sorting by rank.");
       return;
     }
     const casteKey = casteMap[caste];
-    const sorted = sortByCollegeAndRank(filtered, casteKey);
-    setFiltered(sorted);
+    setFiltered(sortByInstituteAndRank(filtered, casteKey));
   };
 
   const moveRow = (index, direction) => {
