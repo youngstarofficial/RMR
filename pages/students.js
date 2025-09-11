@@ -34,7 +34,6 @@ export default function Students() {
   };
 
   const isGirlsCollege = (student) => {
-    // Check if all "Boys" fields are empty → this is a girls college
     return Object.keys(casteMap)
       .filter(c => c.endsWith("Boys"))
       .every(key => !student[casteMap[key]]);
@@ -43,7 +42,6 @@ export default function Students() {
   const sortByInstituteAndRank = (data, casteKey = null) => {
     if (!casteKey) return [...data].sort((a, b) => (a.instituteName || "").localeCompare(b.instituteName || ""));
     
-    // Group by institute
     const groups = {};
     data.forEach(item => {
       const inst = item.instituteName || "";
@@ -51,7 +49,6 @@ export default function Students() {
       groups[inst].push(item);
     });
 
-    // Sort branches inside each group by rank
     Object.keys(groups).forEach(inst => {
       groups[inst].sort((a, b) => {
         const rankA = parseRank(a[casteKey]);
@@ -61,7 +58,6 @@ export default function Students() {
       });
     });
 
-    // Sort institutes by their top-performing branch
     const institutes = Object.keys(groups).sort((a, b) => {
       const bestA = Math.min(...groups[a].map(s => parseRank(s[casteKey])));
       const bestB = Math.min(...groups[b].map(s => parseRank(s[casteKey])));
@@ -110,11 +106,9 @@ export default function Students() {
       const matchesBranch = selectedBranches.length ? selectedBranches.includes(s.branchCode) : true;
       const matchesDistrict = selectedDistricts.length ? selectedDistricts.includes(s.distCode) : true;
 
-      // College type filter
       let matchesCollegeType = true;
       if (collegeType === "Women") matchesCollegeType = isGirlsCollege(s);
 
-      // Boys caste should hide girls colleges
       const boysCaste = ["OC Boys","BC-A Boys","BC-B Boys","BC-C Boys","BC-D Boys","BC-E Boys","SC Boys","ST Boys","EWS GEN OU"];
       if (boysCaste.includes(caste) && isGirlsCollege(s)) return false;
 
@@ -170,46 +164,78 @@ export default function Students() {
     setFiltered(newData);
   };
 
-  const handleDownload = () => {
-    const doc = new jsPDF();
-    const studentName = document.getElementById("name").value || "Provide Name";
-    const mark = document.getElementById("rank").value || "Provide Mark";
-    const caste = getActiveCaste() || "Provide Caste";
+const handleDownload = () => {
+  const doc = new jsPDF();
 
-    doc.setFontSize(14);
-    doc.text(`Student Name: ${studentName}`, 14, 20);
-    doc.text(`Mark: ${mark}`, 14, 30);
-    doc.text(`Caste: ${caste}`, 14, 40);
+  // Student Info
+  const studentName = document.getElementById("name").value || "Provide_Name";
+  const mark = document.getElementById("rank").value || "Provide_Rank";
+  const caste = getActiveCaste() || "Provide_Caste";
 
-    const tableColumn = ["S.No","Inst Code","Institute Name","Branch Code","Branch Name","Dist Code","Dist Name"];
-    const tableRows = filtered.map((s, idx) => [
-      idx + 1,
-      s.instCode,
-      s.instituteName,
-      s.branchCode,
-      s.branchName,
-      s.distCode,
-      s.place
-    ]);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold"); // Bold for heading
+  doc.text("Student Info", 14, 20); // Left side heading
 
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 50,
-      styles: { halign: "center", textColor: 0, lineColor: [0,0,0], lineWidth: 0.5 },
-      headStyles: { fillColor: [173, 216, 230], textColor: 0, lineColor: [0,0,0], lineWidth: 0.5 },
-      didParseCell: function (data) {
-        if (data.section === 'body') {
-          const row = filtered[data.row.index];
-          if (isGirlsCollege(row)) data.cell.styles.fillColor = [224, 235, 255];
-          data.cell.styles.lineColor = [0,0,0];
-          data.cell.styles.lineWidth = 0.5;
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal"); // Back to normal
+  doc.text(`Student Name: ${studentName}`, 14, 30);
+  doc.text(`Rank: ${mark}`, 14, 38);
+  doc.text(`Caste: ${caste}`, 14, 46);
+
+  // Table headers
+  let tableColumn = [
+    "S.No",
+    "Inst Code",
+    "Institute Name",
+    "Place",
+    "Dist Code",
+    "Branch Code",
+    "Branch Name"
+  ];
+
+  // Table rows
+  const tableRows = filtered.map((s, idx) => [
+    idx + 1,
+    s.instCode || "",
+    s.instituteName || "",
+    s.place || "",
+    s.distCode || "",
+    s.branchCode || "",
+    s.branchName || ""
+  ]);
+
+  // Render table (start just a little below Student Info)
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: 55, // ⬅ Reduced gap
+    styles: { halign: "center", fontSize: 9, lineColor: [0, 0, 0], lineWidth: 0.3 },
+    headStyles: { fillColor: [173, 216, 230], textColor: 0, fontStyle: "bold" },
+    bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
+    tableLineColor: [0, 0, 0],
+    tableLineWidth: 0.3,
+    didParseCell: (data) => {
+      if (data.section === "body") {
+        const row = filtered[data.row.index];
+        if (isGirlsCollege(row)) {
+          data.cell.styles.fillColor = [255, 228, 225];
         }
       }
-    });
+    },
+  });
 
-    doc.save("student_portal_data.pdf");
-  };
+  // Footer page numbers
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(10);
+    doc.text(`Page ${i} of ${pageCount}`, 200, 290, { align: "right" });
+  }
+
+  // Save file with student name
+  doc.save(`${studentName.replace(/\s+/g, "_")}.pdf`);
+};
+
 
   const displayCaste = selectedCaste || studentCaste || "";
 
