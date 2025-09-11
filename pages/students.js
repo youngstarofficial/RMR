@@ -164,51 +164,77 @@ export default function Students() {
     setFiltered(newData);
   };
 
-const handleDownload = () => {
+  const handleDownload = () => {
   const doc = new jsPDF();
 
-  // Student Info
+  // Student Info values
   const studentName = document.getElementById("name").value || "Provide_Name";
   const mark = document.getElementById("rank").value || "Provide_Rank";
   const caste = getActiveCaste() || "Provide_Caste";
 
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold"); // Bold for heading
-  doc.text("Student Info", 14, 20); // Left side heading
+  // Background color for the row
+  const bgColor = [228, 228, 255]; // #d5f9ffff
 
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal"); // Back to normal
-  doc.text(`Student Name: ${studentName}`, 14, 30);
-  doc.text(`Rank: ${mark}`, 14, 38);
-  doc.text(`Caste: ${caste}`, 14, 46);
+  // Position and size
+  const x = 14;
+  const y = 20;
+  const width = 182;
+  const height = 8; // reduced height
 
-  // Table headers
-  let tableColumn = [
-    "S.No",
-    "Inst Code",
-    "Institute Name",
-    "Place",
-    "Dist Code",
-    "Branch Code",
-    "Branch Name"
-  ];
+  // Draw filled rectangle
+  doc.setFillColor(...bgColor);
+  doc.rect(x, y, width, height, "F");
 
-  // Table rows
-  const tableRows = filtered.map((s, idx) => [
-    idx + 1,
+  // Draw border around the row
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+  doc.rect(x, y, width, height);
+
+  // Divide into 3 sections for Name, Rank, Caste
+  const colWidths = [60, 50, 72]; // total = 182
+  const colX = [x, x + colWidths[0], x + colWidths[0] + colWidths[1]];
+
+  // Draw vertical lines between columns
+  doc.line(colX[1], y, colX[1], y + height);
+  doc.line(colX[2], y, colX[2], y + height);
+
+  // Add text inside each column (bold)
+// Add text inside each column
+doc.setFontSize(11);
+
+// Name
+doc.setFont("helvetica", "bold");
+doc.text("Name:", colX[0] + 2, y + 6);
+doc.setFont("helvetica", "normal");
+doc.text(studentName, colX[0] + 18, y + 6); // shifted right to fit after label
+
+// Rank
+doc.setFont("helvetica", "bold");
+doc.text("Rank:", colX[1] + 2, y + 6);
+doc.setFont("helvetica", "normal");
+doc.text(mark, colX[1] + 16, y + 6);
+
+// Caste
+doc.setFont("helvetica", "bold");
+doc.text("Caste:", colX[2] + 2, y + 6);
+doc.setFont("helvetica", "normal");
+doc.text(caste, colX[2] + 18, y + 6);
+
+  // Continue with the table below
+  const tableColumn = ["Inst Code", "Institute Name", "Branch Code", "Branch Name", "Dist Code", "Place"];
+  const tableRows = filtered.map((s) => [
     s.instCode || "",
     s.instituteName || "",
-    s.place || "",
-    s.distCode || "",
     s.branchCode || "",
-    s.branchName || ""
+    s.branchName || "",
+    s.distCode || "",
+    s.place || ""
   ]);
 
-  // Render table (start just a little below Student Info)
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 55, // ⬅ Reduced gap
+    startY: y + height + 4,
     styles: { halign: "center", fontSize: 9, lineColor: [0, 0, 0], lineWidth: 0.3 },
     headStyles: { fillColor: [173, 216, 230], textColor: 0, fontStyle: "bold" },
     bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
@@ -224,7 +250,7 @@ const handleDownload = () => {
     },
   });
 
-  // Footer page numbers
+  // Footer with page numbers
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -232,10 +258,8 @@ const handleDownload = () => {
     doc.text(`Page ${i} of ${pageCount}`, 200, 290, { align: "right" });
   }
 
-  // Save file with student name
-  doc.save(`${studentName.replace(/\s+/g, "_")}.pdf`);
+  doc.save(`${studentName.replace(/\s+/g, "_")}_${mark}_${caste.replace(/\s+/g, "_")}.pdf`);
 };
-
 
   const displayCaste = selectedCaste || studentCaste || "";
 
@@ -244,7 +268,6 @@ const handleDownload = () => {
       <h1>Student Portal 👨‍🎓🧑‍🎓</h1>
 
       <div className="filter-form">
-
         <div className="filter-box student-info-box">
           <h2>Enter Student Info</h2>
           <div className="student-info">
@@ -267,7 +290,6 @@ const handleDownload = () => {
         <div className="filter-box filters-box">
           <h2>Filters</h2>
           <div className="filters-side-by-side">
-
             <select value={collegeType} onChange={e => setCollegeType(e.target.value)}>
               <option value="All">All Colleges</option>
               <option value="Women">Women Colleges</option>
@@ -308,13 +330,13 @@ const handleDownload = () => {
             <input type="number" id="maxRank" placeholder="Max Rank" />
           </div>
         </div>
-
       </div>
 
       <table id="studentTable">
         <thead>
           <tr>
-            <th>Move</th>
+            <th>Sl. No</th>
+            <th>Remove</th>
             <th>Inst Code</th>
             <th>Institute Name</th>
             <th>Place</th>
@@ -331,9 +353,13 @@ const handleDownload = () => {
             const isWomenCollege = (s.instituteName || "").toLowerCase().includes("women") || isGirlsCollege(s);
             return (
               <tr key={idx} style={{ backgroundColor: isWomenCollege ? "#ffe4e1" : "#e6e6fa" }}>
+                <td>{idx + 1}</td>
                 <td>
-                  <button onClick={() => moveRow(idx,"up")}>⬆</button>
-                  <button onClick={() => moveRow(idx,"down")}>⬇</button>
+                  <button onClick={() => {
+                    const newData = [...filtered];
+                    newData.splice(idx, 1);
+                    setFiltered(newData);
+                  }}>❌</button>
                 </td>
                 <td>{s.instCode}</td>
                 <td>{s.instituteName}</td>
