@@ -348,32 +348,37 @@ doc.text(caste, colX[2] + 18, y + 6);
             <th>Tuition Fee</th>
           </tr>
         </thead>
-        <tbody>
-          {filtered.map((s, idx) => {
-            const isWomenCollege = (s.instituteName || "").toLowerCase().includes("women") || isGirlsCollege(s);
-            return (
-              <tr key={idx} style={{ backgroundColor: isWomenCollege ? "#ffe4e1" : "#e6e6fa" }}>
-                <td>{idx + 1}</td>
-                <td>
-                  <button onClick={() => {
-                    const newData = [...filtered];
-                    newData.splice(idx, 1);
-                    setFiltered(newData);
-                  }}>❌</button>
-                </td>
-                <td>{s.instCode}</td>
-                <td>{s.instituteName}</td>
-                <td>{s.place}</td>
-                <td>{s.distCode}</td>
-                <td>{s.branchCode}</td>
-                <td>{s.branchName}</td>
-                {displayCaste === "" && casteOptions.map(c => <td key={c}>{s[casteMap[c]]}</td>)}
-                {displayCaste !== "" && <td>{s[casteMap[displayCaste]]}</td>}
-                <td>{s.tuitionFee}</td>
-              </tr>
-            );
-          })}
-        </tbody>
+<tbody>
+  {filtered.map((s, idx) => {
+    const isWomenCollege = (s.instituteName || "").toLowerCase().includes("women") || isGirlsCollege(s);
+    return (
+      <tr key={idx} style={{ backgroundColor: isWomenCollege ? "#ffe4e1" : "#e6e6fa" }}>
+        <td>{idx + 1}</td>
+        <td>
+          <button onClick={() => {
+            const newData = [...filtered];
+            newData.splice(idx, 1);
+            setFiltered(newData);
+          }}>❌</button>
+        </td>
+        {/* NEW: Up / Down Buttons */}
+        <td>
+          <button onClick={() => moveRow(idx, "up")}>⬆</button>
+          <button onClick={() => moveRow(idx, "down")}>⬇</button>
+        </td>
+        <td>{s.instCode}</td>
+        <td>{s.instituteName}</td>
+        <td>{s.place}</td>
+        <td>{s.distCode}</td>
+        <td>{s.branchCode}</td>
+        <td>{s.branchName}</td>
+        {displayCaste === "" && casteOptions.map(c => <td key={c}>{s[casteMap[c]]}</td>)}
+        {displayCaste !== "" && <td>{s[casteMap[displayCaste]]}</td>}
+        <td>{s.tuitionFee}</td>
+      </tr>
+    );
+  })}
+</tbody>
       </table>
 
       <style jsx>{`
