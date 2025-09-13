@@ -24,6 +24,27 @@ export default function Students() {
     "EWS GEN OU":"ewsGenOu","EWS GIRLS OU":"ewsGirlsOu"
   };
 
+  const instCodeOrder = [
+    "JNTK","AUCE","VITAPU","SRMUPU","GVPE","VISW","VITAPUMT","VITB","JNTV","SVUC","JNTA","SRKR",
+    "ANIL","ADTPPU","RVJC","MVRG","JNTC","GPRE","GMRI","JNTP","VIVP","AUEWSF","PPSV","VVIT","VSVT",
+    "MITS","ADIT","GVPW","ACET","PRAG","GDLV","LIET","VLIT","NARN","MBUTPU","SASI","SVCE","LBCE",
+    "VIEW","KITS","RAGU","CRRE","JNTN","BVTS","ANCUSF","NRIA","PCEK","BECB","ANURSF","RGIT","GGURPU",
+    "GVPT","RCEE","SRIT","VNIW","NSRT","DLBC","SPMUSF","DHAN","NBKR","SDTN","BVCE","SWRN","NRNG",
+    "IDEL","SKUASF","MICT","ARTB","GIET","RAVW","BRAUSF","MLEW","RPRA","AVEV","VEMU","ASKW","SRKI",
+    "SGVP","AITT","BWEC","APUCPU","MRCL","KSRM","GTNN","ALTS","ANSN","DNRE","ASKWOC","NSPE","MTIE",
+    "GATE","ACEM","VETS","NSRE","QISE","PACE","PVKK","DIET","AVEN","BVCR","CIET","URCE","SAVE","SSSE",
+    "KRUESF","ALIT","YGVU","VITW","PSCV","SVCT","KHIT","TMLN","VISM","JONY","VSPT","VITK","RUCESF",
+    "ELRU","PYDE","SSCE","SRIN","SVIK","ISTS","SVET","KVSR","BABA","VSMR","BVSR","AECN","SAVEOC",
+    "KUPM","ASTC","PKSK","ESWR","LIMT","SRET","AITK","CEVP","HITE","VHNI","WSTM","ASVR","RGAN","VVGV",
+    "AITSPU","KORM","SVUCSS","NRIT","KTSP","RSRN","ASIP","PVKKOC","PRIK","SREC","VCTN","WISE","AMRN",
+    "GVRS","TECH","SVCN","SRIP","SEAT","BEMA","CHDL","SVPP","VGTN","SANK","MPLG","MVRS","CRIT","MIET",
+    "CECC","SVIT","GTMW","KLMW","SIEN","MAMW","ACEE","GITS","DSIT","SATS","MJRT","KMMT","CBIT","KITG",
+    "BCET","UNIV","RKCE","ANMB","PITW","SVCK","KISR","PREC","CVRT","CHKN","LOYL","GVIC","NVRT","PIIT",
+    "VNRC","KCIT","CCVY","LENO","VITS","IITM","GKCS","ISTSOC","CITY","MSEW","RIET","PPDV","BITS",
+    "BVRM","VJAM","HIND","ABRK","PITT","SRSR","NEWS","BESTPU","RVIT","SSCC","BRNK","SGIT","SRTS",
+    "SVEP","NEWT"
+  ];
+
   const parseRank = (value) => {
     if (value === undefined || value === null) return Infinity;
     const s = String(value).trim();
@@ -39,33 +60,12 @@ export default function Students() {
       .every(key => !student[casteMap[key]]);
   };
 
-  const sortByInstituteAndRank = (data, casteKey = null) => {
-    if (!casteKey) return [...data].sort((a, b) => (a.instituteName || "").localeCompare(b.instituteName || ""));
-    
-    const groups = {};
-    data.forEach(item => {
-      const inst = item.instituteName || "";
-      if (!groups[inst]) groups[inst] = [];
-      groups[inst].push(item);
+  const sortByInstCodeOrder = (data) => {
+    return [...data].sort((a, b) => {
+      const idxA = instCodeOrder.indexOf(a.instCode) === -1 ? Infinity : instCodeOrder.indexOf(a.instCode);
+      const idxB = instCodeOrder.indexOf(b.instCode) === -1 ? Infinity : instCodeOrder.indexOf(b.instCode);
+      return idxA - idxB;
     });
-
-    Object.keys(groups).forEach(inst => {
-      groups[inst].sort((a, b) => {
-        const rankA = parseRank(a[casteKey]);
-        const rankB = parseRank(b[casteKey]);
-        if (rankA !== rankB) return rankA - rankB;
-        return (a.branchName || "").localeCompare(b.branchName || "");
-      });
-    });
-
-    const institutes = Object.keys(groups).sort((a, b) => {
-      const bestA = Math.min(...groups[a].map(s => parseRank(s[casteKey])));
-      const bestB = Math.min(...groups[b].map(s => parseRank(s[casteKey])));
-      if (bestA !== bestB) return bestA - bestB;
-      return a.localeCompare(b);
-    });
-
-    return institutes.flatMap(inst => groups[inst]);
   };
 
   useEffect(() => {
@@ -73,8 +73,8 @@ export default function Students() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          setStudents(sortByInstituteAndRank(data, null));
-          setFiltered(sortByInstituteAndRank(data, null));
+          setStudents(sortByInstCodeOrder(data));
+          setFiltered(sortByInstCodeOrder(data));
         } else {
           setStudents([]);
           setFiltered([]);
@@ -129,8 +129,7 @@ export default function Students() {
       return matchesName && matchesBranch && matchesDistrict && matchesCaste && matchesRank && matchesCollegeType;
     });
 
-    const casteKey = caste ? casteMap[caste] : null;
-    setFiltered(sortByInstituteAndRank(result, casteKey));
+    setFiltered(sortByInstCodeOrder(result));
   };
 
   const handleReset = () => {
@@ -143,17 +142,7 @@ export default function Students() {
     document.getElementById("maxRank").value = "";
     setSelectedBranches([]);
     setSelectedDistricts([]);
-    setFiltered(sortByInstituteAndRank(students, null));
-  };
-
-  const handleSortByRank = () => {
-    const caste = getActiveCaste();
-    if (!caste) {
-      alert("Please select a caste before sorting by rank.");
-      return;
-    }
-    const casteKey = casteMap[caste];
-    setFiltered(sortByInstituteAndRank(filtered, casteKey));
+    setFiltered(sortByInstCodeOrder(students));
   };
 
   const moveRow = (index, direction) => {
@@ -258,7 +247,6 @@ export default function Students() {
         <div className="filter-box button-box">
           <button onClick={handleSearch}>🔍 Search</button>
           <button onClick={handleReset}>♻ Reset</button>
-          <button onClick={handleSortByRank}>↕ Sort by Rank</button>
           <button onClick={handleDownload}>📥 Download PDF</button>
         </div>
 
@@ -337,7 +325,6 @@ export default function Students() {
                     setFiltered(newData);
                   }}>❌</button>
                 </td>
-                {/* Move buttons */}
                 <td>
                   <button onClick={() => moveRow(idx, "up")}>⬆</button>
                   <button onClick={() => moveRow(idx, "down")}>⬇</button>

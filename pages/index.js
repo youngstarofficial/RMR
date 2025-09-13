@@ -1,4 +1,4 @@
-"use client"; // make this a client component
+"use client";
 
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -19,7 +19,6 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    // Generate random emoji positions, size, delay, etc. on client only
     const data = Array.from({ length: 30 }).map(() => ({
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
       left: Math.random() * 100,
@@ -69,25 +68,35 @@ export default function Home() {
           display: flex;
           justify-content: center;
           align-items: center;
-          background: linear-gradient(-45deg, #d4fc79, #96e6a1, #c9f9c2, #b7f8db);
+          background: linear-gradient(135deg, #a2d9ff, #c3f0ff);
           background-size: 400% 400%;
-          animation: gradientBG 10s ease infinite;
+          animation: gradientBG 15s ease infinite;
           overflow: hidden;
           font-family: "Brush Script MT", cursive;
           position: relative;
         }
 
-        .welcome-container {
-          background: rgba(255, 255, 255, 0.9);
-          padding: 70px 90px;
-          border-radius: 30px;
-          box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
-          backdrop-filter: blur(10px);
-          text-align: center;
-          animation: floatBox 4s ease-in-out infinite, fadeInUp 1.2s ease;
-          color: #222;
-          z-index: 2;
-        }
+       .welcome-container {
+  background: #ffb6c1; /* Light pink */
+  padding: 100px 120px;
+  border-radius: 50%; /* circle shape */
+  clip-path: polygon(
+    50% 0%, 54% 10%, 60% 5%, 65% 15%, 70% 10%, 75% 20%, 80% 15%, 
+    85% 25%, 90% 20%, 95% 30%, 100% 25%, 95% 35%, 100% 40%, 95% 45%, 
+    100% 50%, 95% 55%, 100% 60%, 95% 65%, 100% 70%, 95% 75%, 90% 70%, 
+    85% 80%, 80% 75%, 75% 85%, 70% 80%, 65% 90%, 60% 85%, 54% 95%, 
+    50% 90%, 46% 95%, 40% 85%, 35% 90%, 30% 80%, 25% 85%, 20% 75%, 
+    15% 80%, 10% 70%, 5% 75%, 0% 70%, 5% 65%, 0% 60%, 5% 55%, 
+    0% 50%, 5% 45%, 0% 40%, 5% 35%, 0% 30%, 5% 25%, 10% 20%, 
+    15% 25%, 20% 15%, 25% 20%, 30% 10%, 35% 15%, 40% 5%, 46% 10%
+  );
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: floatBox 4s ease-in-out infinite, fadeInUp 1.2s ease;
+  color: #222;
+  z-index: 2;
+}
+
 
         h1 {
           font-size: 4rem;
@@ -120,7 +129,6 @@ export default function Home() {
           box-shadow: 0 8px 35px rgba(0, 0, 0, 0.3);
         }
 
-        /* Floating emojis */
         .emoji {
           position: absolute;
           top: 100%;
@@ -135,17 +143,10 @@ export default function Home() {
           100% { top: -20%; transform: translateY(-120vh) rotate(360deg); }
         }
 
-        /* Floating white box */
         @keyframes floatBox {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-20px); }
           100% { transform: translateY(0px); }
-        }
-
-        @keyframes gradientBG {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
         }
 
         @keyframes fadeInUp {

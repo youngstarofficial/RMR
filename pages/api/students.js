@@ -9,8 +9,8 @@ export default async function handler(req, res) {
       await client.connect();
     }
 
-    const db = client.db("campus"); // Your database name
-    const students = await db.collection("Students").find({}).toArray();
+    const db = client.db("Newap"); // ✅ use your new DB name
+    const students = await db.collection("Apnew").find({}).toArray(); // ✅ use your new collection name
 
     console.log("Fetched Students Data:", students);  // Debug: Check structure in console
 
